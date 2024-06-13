@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   CssBaseline,
   Container,
@@ -19,7 +19,7 @@ import {
   Polyline,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import L, { LatLng } from "leaflet";
 import axios from "axios";
 import polyline from "@mapbox/polyline";
 import {
@@ -28,17 +28,44 @@ import {
 } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
+type Vehicle = {
+  id: number;
+  start: number[];
+  end?: number[];
+  time_window?: number[];
+};
+
+type Job = {
+  id?: number;
+  location: number[];
+  lng?: number;
+  lat?: number;
+  time_window?: number[];
+};
+
+type Route = {
+  id?: number;
+  job_ids: number[];
+  vehicle_id: number;
+  geometry?: string;
+};
+
 function App() {
-  const [jobs, setJobs] = useState([]);
-  const [vehicles, setVehicles] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [routes, setRoutes] = useState([]);
+  const [jobs, setJobs] = useState<Partial<Job>[]>([]);
+  const [vehicles, setVehicles] = useState<Partial<Vehicle>[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<LatLng | null>(null);
+  const [routes, setRoutes] = useState<Route[]>([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [jobTimeWindowStart, setJobTimeWindowStart] = useState(null);
-  const [jobTimeWindowEnd, setJobTimeWindowEnd] = useState(null);
-  const [vehicleTimeWindowStart, setVehicleTimeWindowStart] = useState(null);
-  const [vehicleTimeWindowEnd, setVehicleTimeWindowEnd] = useState(null);
+  const [jobTimeWindowStart, setJobTimeWindowStart] = useState<Date | null>(
+    null
+  );
+  const [jobTimeWindowEnd, setJobTimeWindowEnd] = useState<Date | null>(null);
+  const [vehicleTimeWindowStart, setVehicleTimeWindowStart] =
+    useState<Date | null>(null);
+  const [vehicleTimeWindowEnd, setVehicleTimeWindowEnd] = useState<Date | null>(
+    null
+  );
 
   function MapClickHandler() {
     useMapEvents({
@@ -79,8 +106,8 @@ function App() {
         }
       );
       const solution = response.data;
-      const newRoutes = solution.routes.map((route) =>
-        polyline.decode(route.geometry)
+      const newRoutes = solution.routes.map((route: Route) =>
+        polyline.decode(route.geometry!)
       );
       setRoutes(newRoutes);
       setSuccess("Routes optimized successfully!");
@@ -131,11 +158,11 @@ function App() {
     setVehicleTimeWindowEnd(null);
   };
 
-  const removeJob = (index) => {
+  const removeJob = (index: number) => {
     setJobs(jobs.filter((_, i) => i !== index));
   };
 
-  const removeVehicle = (index) => {
+  const removeVehicle = (index: number) => {
     setVehicles(vehicles.filter((_, i) => i !== index));
   };
 
@@ -177,7 +204,7 @@ function App() {
                 {jobs.map((job, index) => (
                   <Marker
                     key={index}
-                    position={[job.lat, job.lng]}
+                    position={[job.lat!, job.lng!]}
                     icon={L.divIcon({
                       className: "job-marker",
                       html: `<span>${index + 1}</span>`,
@@ -187,7 +214,7 @@ function App() {
                 {vehicles.map((vehicle, index) => (
                   <Marker
                     key={index}
-                    position={[vehicle.start[1], vehicle.start[0]]}
+                    position={[vehicle.start![1], vehicle.start![0]]}
                     icon={L.divIcon({
                       className: "vehicle-marker",
                       html: `<span>${index + 1}</span>`,
@@ -197,7 +224,9 @@ function App() {
                 {routes.map((route, index) => (
                   <Polyline
                     key={index}
-                    positions={route.map((coord) => [coord[0], coord[1]])}
+                    positions={(route as unknown as number[][]).map(
+                      (coord: number[]) => [coord[0], coord[1]]
+                    )}
                     pathOptions={Options[index] || Options[0]}
                   />
                 ))}
@@ -226,17 +255,11 @@ function App() {
                         label="Job Time Window Start"
                         value={jobTimeWindowStart}
                         onChange={(date) => setJobTimeWindowStart(date)}
-                        renderInput={(params) => (
-                          <TextField {...params} fullWidth margin="normal" />
-                        )}
                       />
                       <DesktopDateTimePicker
                         label="Job Time Window End"
                         value={jobTimeWindowEnd}
                         onChange={(date) => setJobTimeWindowEnd(date)}
-                        renderInput={(params) => (
-                          <TextField {...params} fullWidth margin="normal" />
-                        )}
                       />
                     </LocalizationProvider>
                     <Button
@@ -254,17 +277,11 @@ function App() {
                         label="Vehicle Time Window Start"
                         value={vehicleTimeWindowStart}
                         onChange={(date) => setVehicleTimeWindowStart(date)}
-                        renderInput={(params) => (
-                          <TextField {...params} fullWidth margin="normal" />
-                        )}
                       />
                       <DesktopDateTimePicker
                         label="Vehicle Time Window End"
                         value={vehicleTimeWindowEnd}
                         onChange={(date) => setVehicleTimeWindowEnd(date)}
-                        renderInput={(params) => (
-                          <TextField {...params} fullWidth margin="normal" />
-                        )}
                       />
                     </LocalizationProvider>
                     <Button
@@ -322,8 +339,8 @@ function App() {
                     key={index}
                     className="flex items-center justify-between mt-2"
                   >
-                    <Typography>{`Vehicle ${index + 1}: ${vehicle.start[0]}, ${
-                      vehicle.start[1]
+                    <Typography>{`Vehicle ${index + 1}: ${vehicle.start![0]}, ${
+                      vehicle.start![1]
                     }`}</Typography>
                     <Typography>{`Time Window: ${
                       vehicle.time_window
