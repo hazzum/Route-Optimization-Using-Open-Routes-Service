@@ -139,7 +139,13 @@ function App() {
     setVehicles(vehicles.filter((_, i) => i !== index));
   };
 
-  const limeOptions = { color: 'lime' }
+  const Options = [
+    { fillColor: "blue" },
+    { color: "black" },
+    { color: "lime" },
+    { color: "purple" },
+    { color: "red" },
+  ];
 
   return (
     <div className="App">
@@ -149,12 +155,12 @@ function App() {
           <Typography variant="h6">Vehicle Routing Problem Solver</Typography>
         </Toolbar>
       </AppBar>
-      <Container maxWidth="lg">
+      <Container>
         <Box sx={{ my: 4 }}>
           {error && <Alert severity="error">{error}</Alert>}
           {success && <Alert severity="success">{success}</Alert>}
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={12}>
               <MapContainer
                 center={[30.044461857480336, 31.235722024323206]}
                 zoom={13}
@@ -181,7 +187,7 @@ function App() {
                 {vehicles.map((vehicle, index) => (
                   <Marker
                     key={index}
-                    position={[vehicle.start[1],vehicle.start[0]]}
+                    position={[vehicle.start[1], vehicle.start[0]]}
                     icon={L.divIcon({
                       className: "vehicle-marker",
                       html: `<span>${index + 1}</span>`,
@@ -192,76 +198,95 @@ function App() {
                   <Polyline
                     key={index}
                     positions={route.map((coord) => [coord[0], coord[1]])}
-                    pathOptions={limeOptions}
+                    pathOptions={Options[index] || Options[0]}
                   />
                 ))}
               </MapContainer>
             </Grid>
-            <Grid item xs={10} md={4}>
-              <TextField
-                label="Selected Location"
-                value={
-                  selectedLocation
-                    ? `${selectedLocation.lat}, ${selectedLocation.lng}`
-                    : ""
-                }
-                fullWidth
-                margin="normal"
-                InputProps={{
-                  readOnly: true,
-                }}
-              />
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DesktopDateTimePicker
-                  label="Job Time Window Start"
-                  value={jobTimeWindowStart}
-                  onChange={(date) => setJobTimeWindowStart(date)}
-                  renderInput={(params) => (
-                    <TextField {...params} fullWidth margin="normal" />
-                  )}
+            <Grid item xs={12} md={12}>
+              <div className="w-full h-full flex flex-col items-center gap-y-2">
+                <TextField
+                  label="Selected Location"
+                  value={
+                    selectedLocation
+                      ? `${selectedLocation.lat}, ${selectedLocation.lng}`
+                      : ""
+                  }
+                  fullWidth
+                  size="small"
+                  margin="normal"
+                  InputProps={{
+                    readOnly: true,
+                  }}
                 />
-                <DesktopDateTimePicker
-                  label="Job Time Window End"
-                  value={jobTimeWindowEnd}
-                  onChange={(date) => setJobTimeWindowEnd(date)}
-                  renderInput={(params) => (
-                    <TextField {...params} fullWidth margin="normal" />
-                  )}
-                />
-              </LocalizationProvider>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={addJob}
-                sx={{ mr: 2 }}
-              >
-                Add Job
-              </Button>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DesktopDateTimePicker
-                  label="Vehicle Time Window Start"
-                  value={vehicleTimeWindowStart}
-                  onChange={(date) => setVehicleTimeWindowStart(date)}
-                  renderInput={(params) => (
-                    <TextField {...params} fullWidth margin="normal" />
-                  )}
-                />
-                <DesktopDateTimePicker
-                  label="Vehicle Time Window End"
-                  value={vehicleTimeWindowEnd}
-                  onChange={(date) => setVehicleTimeWindowEnd(date)}
-                  renderInput={(params) => (
-                    <TextField {...params} fullWidth margin="normal" />
-                  )}
-                />
-              </LocalizationProvider>
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={addVehicle}
-              >
-                Add Vehicle
-              </Button>
+                <div className="flex flex-rows space-x-2">
+                  <div className="flex flex-col space-y-1 items-center">
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                      <DesktopDateTimePicker
+                        label="Job Time Window Start"
+                        value={jobTimeWindowStart}
+                        onChange={(date) => setJobTimeWindowStart(date)}
+                        renderInput={(params) => (
+                          <TextField {...params} fullWidth margin="normal" />
+                        )}
+                      />
+                      <DesktopDateTimePicker
+                        label="Job Time Window End"
+                        value={jobTimeWindowEnd}
+                        onChange={(date) => setJobTimeWindowEnd(date)}
+                        renderInput={(params) => (
+                          <TextField {...params} fullWidth margin="normal" />
+                        )}
+                      />
+                    </LocalizationProvider>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={addJob}
+                      sx={{ mr: 2 }}
+                    >
+                      Add Job
+                    </Button>
+                  </div>
+                  <div className="flex flex-col space-y-1 items-center">
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                      <DesktopDateTimePicker
+                        label="Vehicle Time Window Start"
+                        value={vehicleTimeWindowStart}
+                        onChange={(date) => setVehicleTimeWindowStart(date)}
+                        renderInput={(params) => (
+                          <TextField {...params} fullWidth margin="normal" />
+                        )}
+                      />
+                      <DesktopDateTimePicker
+                        label="Vehicle Time Window End"
+                        value={vehicleTimeWindowEnd}
+                        onChange={(date) => setVehicleTimeWindowEnd(date)}
+                        renderInput={(params) => (
+                          <TextField {...params} fullWidth margin="normal" />
+                        )}
+                      />
+                    </LocalizationProvider>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      onClick={addVehicle}
+                    >
+                      Add Vehicle
+                    </Button>
+                  </div>
+                </div>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleOptimize}
+                  className="w-1/2 ml-auto"
+                >
+                  Optimize Routes
+                </Button>
+              </div>
+            </Grid>
+            <Grid item xs={12} md={6}>
               <div className="mt-4">
                 <Typography variant="h6">Jobs</Typography>
                 {jobs.map((job, index) => (
@@ -285,6 +310,11 @@ function App() {
                   </div>
                 ))}
               </div>
+              <div className="w-full ml-auto text-white">
+                fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+              </div>
+            </Grid>
+            <Grid item xs={12} md={6}>
               <div className="mt-4">
                 <Typography variant="h6">Vehicles</Typography>
                 {vehicles.map((vehicle, index) => (
@@ -310,14 +340,9 @@ function App() {
                   </div>
                 ))}
               </div>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleOptimize}
-                className="mt-4"
-              >
-                Optimize Routes
-              </Button>
+              <div className="w-full ml-auto text-white">
+                fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+              </div>
             </Grid>
           </Grid>
         </Box>
