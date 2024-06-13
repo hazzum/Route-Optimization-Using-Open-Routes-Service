@@ -99,7 +99,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        "http://solver.vroom-project.org",
+        "https://solver.vroom-project.org",
         data,
         {
           headers: { "Content-Type": "application/json" },
